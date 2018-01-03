@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Header -->
+<header>
+  <div class="container" id="maincontent" tabindex="-1">
+    <div class="row">
+      <div class="intro-text">
+        <h1 class="name">Breast Cancer Analysis</h1>
+        <hr class="star-light">
+      </div>
+
+      <div class="container" style="margin-top:-50px;">
+
+        <!-- The fileinput-button span is used to style the file input field as button -->
+        <span class="btn btn-success fileinput-button">
+          <i class="glyphicon glyphicon-plus"></i>
+          <span>Select files...</span>
+          <!-- The file input field used as target for the file upload widget -->
+          <input id="fileupload" type="file" name="files[]" size="1048576" multiple>
+        </span>
+        <br>
+        <br>
+        <!-- The global progress bar -->
+        <div id="progress" class="progress">
+          <div class="progress-bar progress-bar-success"></div>
+        </div>
+        <!-- The container for the uploaded files -->
+        <div id="files" class="files"></div>
+
+      </div>
+      
+     <!--  <form id="form_upload" class="col-lg-8 col-lg-offset-2 text-center">
+        <p>This is it!</p>
+
+        <div class="form-group">
+          <label for="medicalFile">Medical features file input</label>
+          <input id="medicalFile" type="file" class="form-control-file" size="1048576">
+        </div> 
+        <button type="submit" class="btn btn-primary">Submit</button>-->
+      </form>
+    </div>
+  </div>
+</header>
+
+{% endblock %}

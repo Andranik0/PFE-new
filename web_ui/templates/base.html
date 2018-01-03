@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Test privacy cloud !">
+    <meta name="author" content="">
+    <title>MediCloud</title>
+
+    <meta property="og:title" content="Medical Cloud" />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="tmp/sample.jpg" />
+    <meta property="og:description" content="Test privacy cloud !" />
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Bootstrap Core CSS -->
+    <link href="{{ url_for('static', filename='css/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+
+    <!-- CSS to style the file input field as button and adjust the Bootstrap progress bars -->
+    <link href="{{ url_for('static', filename='css/progress-bar/jquery.fileupload.css') }}" rel="stylesheet">
+
+    <!-- Theme CSS -->
+    <link href="{{ url_for('static', filename='css/freelancer-theme.min.css') }}" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='css/custom.css') }}" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <script src="https://use.fontawesome.com/470b91f216.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <script src="{{ url_for('static', filename='js/jquery/jquery.min.js') }}"></script>
+
+</head>
+
+<body id="page-top" class="index">
+    <div id="skipnav"><a href="#maincontent">Contenu principal</a></div>
+
+    <!-- Navigation -->
+    <nav id="mainNav" class="navbar navbar-default navbar-fixed-top navbar-custom">
+        <div class="container">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header page-scroll">
+              <a class="navbar-brand" href="/">MediCloud</a>
+          </div>
+
+          <!-- Collect the nav links, forms, and other content for toggling -->
+          <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+                <li class="hidden">
+                    <a href="#page-top"></a>
+                </li>
+            </ul>
+        </div>
+        <!-- /.navbar-collapse -->
+    </div>
+    <!-- /.container-fluid -->
+</nav>
+
+{% block content %}{% endblock %}
+
+<footer class="text-center">
+    <div class="footer-below">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <a href="https://github.com/Andranik0/PFE" class="btn-social btn-outline" target="_blank"><span class="sr-only">Github</span><i class="fa fa-fw fa-github"></i></a>
+                    <hr class="star-light">
+                    <span class="italic">Copyright &copy; SSR - Télécom SudParis</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Scroll to Top Button (Only visible on small and extra-small screen sizes) -->
+<div class="scroll-top page-scroll hidden-sm hidden-xs hidden-lg hidden-md">
+    <a class="btn btn-primary" href="#page-top">
+        <i class="fa fa-chevron-up"></i>
+    </a>
+</div>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="{{ url_for('static', filename='js/bootstrap/bootstrap.min.js') }}"></script>
+
+<!-- Plugin JavaScript -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.3/jquery.easing.min.js"></script>
+
+<!-- Theme JavaScript -->
+<script src="{{ url_for('static', filename='js/freelancer-theme.min.js') }}"></script>
+
+<!-- Progress Bar JQuery -->
+<!-- The jQuery UI widget factory, can be omitted if jQuery UI is already included -->
+<script src="{{ url_for('static', filename='js/progress-bar/jquery.ui.widget.js') }}"></script>
+<!-- The Iframe Transport is required for browsers without support for XHR file uploads -->
+<script src="{{ url_for('static', filename='js/progress-bar/jquery.iframe-transport.js') }}"></script>
+<!-- The basic File Upload plugin -->
+<script src="{{ url_for('static', filename='js/progress-bar/jquery.fileupload.js') }}"></script>
+
+<script>
+    /*jslint unparam: true */
+    /*global window, $ */
+    $(function () {
+        'use strict';
+        $('#fileupload').fileupload({
+            url: "{{ url_for('server') }}",
+            dataType: 'json',
+            done: function (e, data) {
+                $.each(data.result.files, function (index, file) {
+                    $('<p/>').text(file.name).appendTo('#files');
+                });
+            },
+            progressall: function (e, data) {
+                var progress = parseInt(data.loaded / data.total * 100, 10);
+                $('#progress .progress-bar').css(
+                    'width',
+                    progress + '%'
+                    );
+            }
+        }).prop('disabled', !$.support.fileInput)
+        .parent().addClass($.support.fileInput ? undefined : 'disabled');
+    });
+</script>
+
+<!-- Paillier JavaScript -->
+<script src="{{ url_for('static', filename='js/jsbn/jsbn.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jsbn/jsbn2.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jsbn/prng4.js') }}"></script>
+<script src="{{ url_for('static', filename='js/jsbn/rng.js') }}"></script>
+<script src="{{ url_for('static', filename='js/paillier.js') }}"></script>
+
+<script>
+    $(document).ready(function() {
+
+        $('#form_upload').submit(function(){
+
+            // Génération des clés
+            var keys = paillier.generateKeys({{numBits}});
+
+            // Chiffre le fichier transmis et l'envoie au serveur
+            processData(document.getElementById('medicalFile').files[0], keys, function(toSend){
+                $.ajax({
+                    type : "POST",
+                    url : "{{ url_for('server') }}",
+                    data: JSON.stringify(toSend, null, '\t'),
+                    contentType: 'application/json;charset=UTF-8',
+                    success: function(result) {
+                        console.log(result);
+                    }
+                });
+            });
+            
+            // Déchiffrement 
+            // var plaintext;
+            // plaintext = keys.sec.decrypt(encC).toString(10);
+
+        });
+    });
+
+    function processData(file, keys, callback) {
+        // Le fichier transmis doit impérativement être composé de deux lignes : la première comprenant le nom des features, la seconde la data du patient associée
+        // Ci-dessous, on prélève uniquement la data du patient puis on la chiffre, avant de la transmettre au serveur
+        if (file) {
+            var reader = new FileReader();
+            reader.readAsText(file);
+            reader.onload = function(e) {
+                var content = e.target.result;
+                var docLines = content.split(/\r\n|\n/);
+                var data = docLines[1].split(',');
+                
+                var encData = [];
+
+                for (var i=1; i<data.length; i++) { 
+                    // encData.push(keys.pub.encrypt(nbv(prepareElement(data[i]))));
+                    encData.push(keys.pub.encrypt(nbv(prepareElement(data[i])))['0']);
+                }
+                // On envoie maintenant encData au serveur pour qu'il effectue la prédiction !
+                // toSend = {'id':data[0], 'encData':encData, 'pubkey':keys.pub};
+                toSend = {'id':data[0], 'encData':encData}
+                callback(toSend);
+            };
+        }   
+    }
+
+    // Cette fonction prépare l'élément data passé en argument, souvent décimal, à subir le chiffrement homomorphe
+    function prepareElement(floatElement){
+        // Quelques tests pour vérifier que cette fonction renvoie bien les valeurs attendues
+        // alert(prepareElement(1.2532));// 12532
+        // alert(prepareElement(0.2145278));// 2145
+        // alert(prepareElement(0.0052));// 52
+        // alert(prepareElement(5241));// 52410000
+        // alert(prepareElement(112.21));// 1122100
+
+        var newFloat;
+
+        var decimalPartSize = 0;
+
+        if ((floatElement-Math.floor(floatElement)) > 0){
+            decimalPartSize = floatElement.toString().length - Math.floor(floatElement).toString().length - 1;
+        }
+
+        var zerosToAdd = 0;
+        if (decimalPartSize < {{precisionMaxData}}){
+            zerosToAdd = {{precisionMaxData}} - decimalPartSize;
+        }
+
+        newFloat = (Math.round(floatElement * Math.pow(10,{{precisionMaxData}})) / Math.pow(10,{{precisionMaxData}})).toString().replace('.','');
+
+        for(var i=0; i<zerosToAdd; i++){
+            newFloat += '0';
+        }
+
+        return parseInt(newFloat);
+    }
+
+
+</script>
+
+</body>
+
+</html>
