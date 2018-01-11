@@ -2,7 +2,6 @@
 # coding: utf-8
 from flask import Flask, render_template, request, jsonify
 from server import mef, model
-from server import uploadHandler as uh
 import sys
 
 
@@ -18,14 +17,10 @@ def index():
 @app.route('/server/', methods = ['POST'])
 def server():
 	content = request.get_json()
-	test = uh.UploadHandler()
-	# id = request.json['id']
-	# data = request.json['encData']
-	# pubkey = request.json['pubkey']
 
 	# On crée le fichier du patient
-	# name = "Fichier du patient n°" + str(content['id'])
-	# patientFile = mef.MedicalEncryptedFile(name,content['id'],content['encData'])
+	name = "Fichier du patient n°" + str(content['id'])
+	patientFile = mef.MedicalEncryptedFile(name,content['id'],content['encData'])
 
 	# On le transmet au modèle de Machine Learning pour aboutir à une prédiction
 	# ml = model.MLModel('', app.config['PRECISION_DATA'])
@@ -35,7 +30,7 @@ def server():
 	# ml.predict(patientFile)
 
 	# return jsonify({"status": "ok", "id":content.id})
-	return jsonify({"status": "ok", "id":0})
+	return jsonify({"status": "ok", "id":content['id']})
 
 if __name__ == "__main__":
 	app.run()

@@ -75,7 +75,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-12">
-                    <a href="https://github.com/Andranik0/PFE" class="btn-social btn-outline" target="_blank"><span class="sr-only">Github</span><i class="fa fa-fw fa-github"></i></a>
+                    <a href="https://github.com/Andranik0/PFE-new" class="btn-social btn-outline" target="_blank"><span class="sr-only">Github</span><i class="fa fa-fw fa-github"></i></a>
                     <hr class="star-light">
                     <span class="italic">Copyright &copy; SSR - Télécom SudParis</span>
                 </div>
@@ -100,37 +100,125 @@
 <!-- Theme JavaScript -->
 <script src="{{ url_for('static', filename='js/freelancer-theme.min.js') }}"></script>
 
-<!-- Progress Bar JQuery -->
-<!-- The jQuery UI widget factory, can be omitted if jQuery UI is already included -->
-<script src="{{ url_for('static', filename='js/progress-bar/jquery.ui.widget.js') }}"></script>
-<!-- The Iframe Transport is required for browsers without support for XHR file uploads -->
-<script src="{{ url_for('static', filename='js/progress-bar/jquery.iframe-transport.js') }}"></script>
-<!-- The basic File Upload plugin -->
-<script src="{{ url_for('static', filename='js/progress-bar/jquery.fileupload.js') }}"></script>
-
+<!-- File Upload Script -->
 <script>
-    /*jslint unparam: true */
-    /*global window, $ */
+
     $(function () {
         'use strict';
-        $('#fileupload').fileupload({
-            url: "{{ url_for('server') }}",
-            dataType: 'json',
-            done: function (e, data) {
-                $.each(data.result.files, function (index, file) {
-                    $('<p/>').text(file.name).appendTo('#files');
-                });
-            },
-            progressall: function (e, data) {
-                var progress = parseInt(data.loaded / data.total * 100, 10);
-                $('#progress .progress-bar').css(
-                    'width',
-                    progress + '%'
-                    );
+
+        var form = document.getElementById('file-form');
+        var fileSelect = document.getElementById('file_upload');
+        var uploadButton = document.getElementById('submit');
+        var statusDiv = document.getElementById('status');
+
+        form.onsubmit = function(event) {
+            event.preventDefault();
+
+            statusDiv.innerHTML = 'Uploading...';
+
+            // Get the files from the input
+            var files = fileSelect.files;
+
+            //Grab just one file, since we are not allowing multiple file uploads
+            var file = files[0]; 
+
+            //Check the file type
+            if (file.name.match(/[^.]*$/i)[0].toLowerCase() != "csv") {
+
+                statusDiv.innerHTML = 'This file is not a CSV file. Sorry, it cannot be uploaded. Try again with a valid file.';
+                return;
             }
-        }).prop('disabled', !$.support.fileInput)
-        .parent().addClass($.support.fileInput ? undefined : 'disabled');
-    });
+
+            if (file.size >= 1048576 ) {
+                statusDiv.innerHTML = 'This file is larger than 1MB. Sorry, it cannot be uploaded.';
+                return;
+            }
+
+            // Generate the keys
+            var keys = paillier.generateKeys({{numBits}});
+
+            processData(file, keys, function(toSend) {
+                var toSendJSON = JSON.stringify(toSend, null, '\t');
+
+                // Set up the AJAX request and send the data
+                $.ajax({
+                    type : "POST",
+                    url : "{{ url_for('server') }}",
+                    data: toSendJSON,
+                    contentType: 'application/json;charset=UTF-8',
+                    success: function() {
+                        statusDiv.innerHTML = 'The file was uploaded successfully !';
+                    },
+                    error: function(){
+                        statusDiv.innerHTML = 'An error occurred while uploading the file. Try again...';
+                    }
+                });
+            });
+
+        };
+
+        // Déchiffrement 
+        // var plaintext;
+        // plaintext = keys.sec.decrypt(encC).toString(10);
+
+        function processData(file, keys, callback) {
+            // Le fichier transmis doit impérativement être composé de deux lignes : la première comprenant le nom des features, la seconde la data du patient associée
+            // Ci-dessous, on prélève uniquement la data du patient puis on la chiffre, avant de la transmettre au serveur
+            if (file) {
+                var reader = new FileReader();
+                reader.readAsText(file);
+                reader.onload = function(e) {
+                    var content = e.target.result;
+                    var docLines = content.split(/\r\n|\n/);
+                    var data = docLines[1].split(',');
+                    
+                    var encData = [];
+
+                    for (var i=1; i<data.length; i++) { 
+                        // encData.push(keys.pub.encrypt(nbv(prepareElement(data[i]))));
+                        encData.push(keys.pub.encrypt(nbv(prepareElement(data[i])))['0']);
+                    }
+                    // On envoie maintenant encData au serveur pour qu'il effectue la prédiction !
+                    // toSend = {'id':data[0], 'encData':encData, 'pubkey':keys.pub};
+                    var toSend = {'id':data[0], 'encData':encData};
+                    callback(toSend);
+                };
+            }   
+        }
+
+        // Cette fonction prépare l'élément data passé en argument, souvent décimal, à subir le chiffrement homomorphe
+        function prepareElement(floatElement){
+            // Quelques tests pour vérifier que cette fonction renvoie bien les valeurs attendues
+            // alert(prepareElement(1.2532));// 12532
+            // alert(prepareElement(0.2145278));// 2145
+            // alert(prepareElement(0.0052));// 52
+            // alert(prepareElement(5241));// 52410000
+            // alert(prepareElement(112.21));// 1122100
+
+            var newFloat;
+
+            var decimalPartSize = 0;
+
+            if ((floatElement-Math.floor(floatElement)) > 0){
+                decimalPartSize = floatElement.toString().length - Math.floor(floatElement).toString().length - 1;
+            }
+
+            var zerosToAdd = 0;
+            if (decimalPartSize < {{precisionMaxData}}){
+                zerosToAdd = {{precisionMaxData}} - decimalPartSize;
+            }
+
+            newFloat = (Math.round(floatElement * Math.pow(10,{{precisionMaxData}})) / Math.pow(10,{{precisionMaxData}})).toString().replace('.','');
+
+            for(var i=0; i<zerosToAdd; i++){
+                newFloat += '0';
+            }
+
+            return parseInt(newFloat);
+        }
+
+});
+
 </script>
 
 <!-- Paillier JavaScript -->
@@ -139,93 +227,6 @@
 <script src="{{ url_for('static', filename='js/jsbn/prng4.js') }}"></script>
 <script src="{{ url_for('static', filename='js/jsbn/rng.js') }}"></script>
 <script src="{{ url_for('static', filename='js/paillier.js') }}"></script>
-
-<script>
-    $(document).ready(function() {
-
-        $('#form_upload').submit(function(){
-
-            // Génération des clés
-            var keys = paillier.generateKeys({{numBits}});
-
-            // Chiffre le fichier transmis et l'envoie au serveur
-            processData(document.getElementById('medicalFile').files[0], keys, function(toSend){
-                $.ajax({
-                    type : "POST",
-                    url : "{{ url_for('server') }}",
-                    data: JSON.stringify(toSend, null, '\t'),
-                    contentType: 'application/json;charset=UTF-8',
-                    success: function(result) {
-                        console.log(result);
-                    }
-                });
-            });
-            
-            // Déchiffrement 
-            // var plaintext;
-            // plaintext = keys.sec.decrypt(encC).toString(10);
-
-        });
-    });
-
-    function processData(file, keys, callback) {
-        // Le fichier transmis doit impérativement être composé de deux lignes : la première comprenant le nom des features, la seconde la data du patient associée
-        // Ci-dessous, on prélève uniquement la data du patient puis on la chiffre, avant de la transmettre au serveur
-        if (file) {
-            var reader = new FileReader();
-            reader.readAsText(file);
-            reader.onload = function(e) {
-                var content = e.target.result;
-                var docLines = content.split(/\r\n|\n/);
-                var data = docLines[1].split(',');
-                
-                var encData = [];
-
-                for (var i=1; i<data.length; i++) { 
-                    // encData.push(keys.pub.encrypt(nbv(prepareElement(data[i]))));
-                    encData.push(keys.pub.encrypt(nbv(prepareElement(data[i])))['0']);
-                }
-                // On envoie maintenant encData au serveur pour qu'il effectue la prédiction !
-                // toSend = {'id':data[0], 'encData':encData, 'pubkey':keys.pub};
-                toSend = {'id':data[0], 'encData':encData}
-                callback(toSend);
-            };
-        }   
-    }
-
-    // Cette fonction prépare l'élément data passé en argument, souvent décimal, à subir le chiffrement homomorphe
-    function prepareElement(floatElement){
-        // Quelques tests pour vérifier que cette fonction renvoie bien les valeurs attendues
-        // alert(prepareElement(1.2532));// 12532
-        // alert(prepareElement(0.2145278));// 2145
-        // alert(prepareElement(0.0052));// 52
-        // alert(prepareElement(5241));// 52410000
-        // alert(prepareElement(112.21));// 1122100
-
-        var newFloat;
-
-        var decimalPartSize = 0;
-
-        if ((floatElement-Math.floor(floatElement)) > 0){
-            decimalPartSize = floatElement.toString().length - Math.floor(floatElement).toString().length - 1;
-        }
-
-        var zerosToAdd = 0;
-        if (decimalPartSize < {{precisionMaxData}}){
-            zerosToAdd = {{precisionMaxData}} - decimalPartSize;
-        }
-
-        newFloat = (Math.round(floatElement * Math.pow(10,{{precisionMaxData}})) / Math.pow(10,{{precisionMaxData}})).toString().replace('.','');
-
-        for(var i=0; i<zerosToAdd; i++){
-            newFloat += '0';
-        }
-
-        return parseInt(newFloat);
-    }
-
-
-</script>
 
 </body>
 

@@ -1,3 +1,7 @@
+header {
+  background:no-repeat center/100% url('/static/img/wp-8.png');
+  color:#001557;
+}
 
 .big-button {
   color: #18BC9C;
@@ -64,4 +68,8 @@ footer{
   width:277px;
   margin-top:30px;
   margin-bottom: 30px;
+}
+
+#status{
+  height:100px;
 }
