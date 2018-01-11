@@ -52,8 +52,8 @@
         <div class="container">
             <!-- Brand and toggle get grouped for better mobile display -->
             <div class="navbar-header page-scroll">
-              <a class="navbar-brand" href="/">MediCloud</a>
-          </div>
+              <a class="navbar-brand" href="/"><span><img src="{{ url_for('static', filename='img/symbol.png') }}" alt="logo"/> MediCloud</span></a> 
+            </div>
 
           <!-- Collect the nav links, forms, and other content for toggling -->
           <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
@@ -175,12 +175,11 @@
                     var encData = [];
 
                     for (var i=1; i<data.length; i++) { 
-                        // encData.push(keys.pub.encrypt(nbv(prepareElement(data[i]))));
                         encData.push(keys.pub.encrypt(nbv(prepareElement(data[i])))['0']);
                     }
                     // On envoie maintenant encData au serveur pour qu'il effectue la prédiction !
                     // toSend = {'id':data[0], 'encData':encData, 'pubkey':keys.pub};
-                    var toSend = {'id':data[0], 'encData':encData};
+                    var toSend = {'id':data[0], 'encData':encData, 'pubkey':keys.pub};
                     callback(toSend);
                 };
             }   

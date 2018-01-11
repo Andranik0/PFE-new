@@ -1,0 +1,36 @@
+<html>
+<body>
+  <!-- JQUERY -->
+  <script src="{{ url_for('static', filename='js/jquery/jquery.min.js') }}"></script>
+
+  <!-- Paillier JavaScript -->
+  <script src="{{ url_for('static', filename='js/jsbn/jsbn.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/jsbn/jsbn2.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/jsbn/prng4.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/jsbn/rng.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/paillier.js') }}"></script>
+
+  <script>
+    $(function () {
+      'use strict';
+      
+      encryptPrediction({{data.toEncrypt}}, function(encPrediction){
+        var encPredictionJSON = JSON.stringify(encPrediction, null, '\t');
+        $.ajax({
+          type : "POST",
+          url : "{{ url_for('result') }}",
+          data: encPredictionJSON,
+          contentType: 'application/json;charset=UTF-8'
+        });
+      })
+
+      function encryptPrediction(prediction, callback) {
+        var keys = paillier.generateKeys(16);
+        var encPrediction = keys.pub.encrypt(nbv(prediction));
+        callback(encPrediction);
+      }
+
+    });
+  </script>
+</body>
+</html>

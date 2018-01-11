@@ -1,7 +1,8 @@
 #! /usr/bin/env python3
 # coding: utf-8
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, json, jsonify, redirect, url_for
 from server import mef, model
+import requests
 import sys
 
 
@@ -17,20 +18,40 @@ def index():
 @app.route('/server/', methods = ['POST'])
 def server():
 	content = request.get_json()
+	print(content, file=sys.stderr)
+
 
 	# On crée le fichier du patient
 	name = "Fichier du patient n°" + str(content['id'])
-	patientFile = mef.MedicalEncryptedFile(name,content['id'],content['encData'])
+	patientFile = mef.MedicalEncryptedFile(name, content['id'], content['encData'])
 
 	# On le transmet au modèle de Machine Learning pour aboutir à une prédiction
 	# ml = model.MLModel('', app.config['PRECISION_DATA'])
 	# ml.train_model()
 	# ml.test_predict()
-	print(content, file=sys.stderr)
+	
 	# ml.predict(patientFile)
 
-	# return jsonify({"status": "ok", "id":content.id})
+	prediction = 1
+	# res = requests.post('http://localhost:8080/cypher', data = {'toEncrypt': prediction,'pubkey':content['pubkey']})
+
 	return jsonify({"status": "ok", "id":content['id']})
+
+
+@app.route('/cypher/')
+def cypher():
+	return render_template('cypher.html', data = request.data)
+
+@app.route('/result/', methods = ['GET', 'POST'])
+def result():
+	content = request.get_json()
+	if(content is not None):
+		print(content)
+	return redirect(build_url('index'))
+
+def build_url(page):
+    return app.config['DOMAIN'] + page +'/'
+
 
 if __name__ == "__main__":
 	app.run()
