@@ -20,7 +20,6 @@ def server():
 	content = request.get_json()
 	print(content, file=sys.stderr)
 
-
 	# On crée le fichier du patient
 	name = "Fichier du patient n°" + str(content['id'])
 	patientFile = mef.MedicalEncryptedFile(name, content['id'], content['encData'])
@@ -33,7 +32,7 @@ def server():
 	# ml.predict(patientFile)
 
 	prediction = 1
-	# res = requests.post('http://localhost:8080/cypher', data = {'toEncrypt': prediction,'pubkey':content['pubkey']})
+	# res = requests.post(build_url('cypher'), data = {'toEncrypt': prediction,'pubkey':content['pubkey']})
 
 	return jsonify({"status": "ok", "id":content['id']})
 
@@ -44,10 +43,10 @@ def cypher():
 
 @app.route('/result/', methods = ['GET', 'POST'])
 def result():
-	content = request.get_json()
-	if(content is not None):
-		print(content)
-	return redirect(build_url('index'))
+	contentPred = request.get_json()
+	if(contentPred is not None):
+		print(contentPred)
+	return redirect(build_url('index'), contentPred=contentPred)
 
 def build_url(page):
     return app.config['DOMAIN'] + page +'/'

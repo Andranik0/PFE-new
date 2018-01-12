@@ -27,6 +27,9 @@
       function encryptPrediction(prediction, callback) {
         var keys = paillier.generateKeys(16);
         var encPrediction = keys.pub.encrypt(nbv(prediction));
+
+        // var pubkey = {{data.pubkey}};
+        // var encPrediction = pubkey.encrypt(nbv(prediction));
         callback(encPrediction);
       }
 
