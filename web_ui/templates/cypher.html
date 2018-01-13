@@ -20,13 +20,7 @@
       encryptPrediction({{data.toEncrypt}}, function(encPrediction){
         var encPredictionJSON = JSON.stringify(encPrediction, null, '\t');
         $('#results').append(encPredictionJSON);
-        // $.ajax({
-        //   type : "POST",
-        //   url : "{{ url_for('result') }}",
-        //   data: encPredictionJSON,
-        //   contentType: 'application/json;charset=UTF-8'
-        // });
-      })
+      });
 
       function encryptPrediction(prediction, callback) {
         var keys = paillier.generateKeys(16);
