@@ -47,7 +47,8 @@ def server():
 
 @app.route('/cypher/')
 def cypher():
-	return render_template('cypher.html', data = 1)
+	# return render_template('cypher.html', data = request.args.get('data'))
+	return render_template('cypher.html', data = {'toEncrypt':42})
 
 def build_url(page):
     return app.config['DOMAIN'] + page +'/'
