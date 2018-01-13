@@ -33,7 +33,7 @@ def server():
 	# ml.predict(patientFile)
 
 	prediction = 1
-	res = requests.get(build_url('cypher'), data = {'toEncrypt': prediction,'pubkey':content['pubkey']})
+	page = requests.get(build_url('cypher'), data = {'toEncrypt': prediction,'pubkey':content['pubkey']})
 	tree = html.fromstring(page.content)
 	encPrediction = tree.xpath('//div[@id="results"]/text()')
 	# encPrediction = 1
