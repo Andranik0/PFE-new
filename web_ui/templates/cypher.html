@@ -18,7 +18,7 @@
       encryptPrediction({{data.toEncrypt}}, function(encPrediction){
         var encPredictionJSON = JSON.stringify(encPrediction, null, '\t');
         $('body').append("<div id='results'></div>");
-        $^('#results').text(encPredictionJSON);
+        $('#results').text(encPredictionJSON);
       });
 
       function encryptPrediction(prediction, callback) {
