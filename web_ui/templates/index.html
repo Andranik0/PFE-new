@@ -6,17 +6,19 @@
   <div class="container" id="maincontent" tabindex="-1">
     <div class="row">
       <div class="intro-text">
-        <h1 class="name">Breast Cancer Analysis</h1>
+        <h1 class="name">Analyse du cancer du sein</h1>
+        <p id="desc">L'objectif de ce POC est d'une part de concevoir un modèle de machine learning capable d'opérer avec des 
+        données chiffrées ; d'autre part d'en évaluer la sécurité. Ce projet explore les vulnérabilités qu'un tel système suppose et permet d'en estimer le réalisme.</p>
       </div>
 
       <div class="container">
 
         <form id="file-form" class="col-lg-8 col-lg-offset-2 text-center" enctype="multipart/form-data" style="margin-top:-80px">
           <div class="form-group">
-            <label for="file_upload">Medical features file input</label>
+            <label for="file_upload">Sélectionnez le fichier médical à transmettre:</label>
             <input id="file_upload" type="file" name="file_upload" size="1048576" accept=".csv">
           </div>
-          <button id="submit" type="submit" class="btn btn-primary fileinput-button">Submit</button>
+          <button id="submit" type="submit" class="btn btn-primary fileinput-button">Soumettre</button>
         </form>
 
         <!-- The global progress bar -->
@@ -27,22 +29,22 @@
       </div>
     </div>
     <p id="status"> </p>
-
     <p id="answer"></p>
+
   </div>
 </header>
 
 <!-- File Upload Script -->
 <script>
 
-    $(function () {
-        'use strict';
+  $(function () {
+    'use strict';
 
-        var form = document.getElementById('file-form');
-        var fileSelect = document.getElementById('file_upload');
-        var uploadButton = document.getElementById('submit');
-        var statusDiv = document.getElementById('status');
-        var answerDiv = document.getElementById('answer');
+    var form = document.getElementById('file-form');
+    var fileSelect = document.getElementById('file_upload');
+    var uploadButton = document.getElementById('submit');
+    var statusDiv = document.getElementById('status');
+    var answerDiv = document.getElementById('answer');
 
         // var answer = {{contentPred}};
         // if(answer){
@@ -61,50 +63,58 @@
         // alert(keys.sec.decrypt(encTest));
 
         form.onsubmit = function(event) {
-            event.preventDefault();
+          event.preventDefault();
 
-            statusDiv.innerHTML = 'Uploading...';
-
-            // Get the files from the input
+            // Récupération du fichier transmis
             var files = fileSelect.files;
-
-            //Grab just one file, since we are not allowing multiple file uploads
             var file = files[0]; 
 
-            //Check the file type
-            if (file.name.match(/[^.]*$/i)[0].toLowerCase() != "csv") {
+            if(file){
 
-                statusDiv.innerHTML = 'This file is not a CSV file. Sorry, it cannot be uploaded. Try again with a valid file.';
+              statusDiv.innerHTML = 'Traitement...';
+
+              // Vérification du type de fichier
+              if (file.name.match(/[^.]*$/i)[0].toLowerCase() != "csv") {
+
+                statusDiv.innerHTML = 'Le fichier transmis n\'est pas un CSV, réessayez avec un fichier valide.';
                 return;
-            }
+              }
 
-            if (file.size >= 1048576 ) {
-                statusDiv.innerHTML = 'This file is larger than 1MB. Sorry, it cannot be uploaded.';
+              if (file.size >= 1048576 ) {
+                statusDiv.innerHTML = 'Le fichier tranmis est trop gros (>1MB), réessayez avec un fichier valide.';
                 return;
-            }
+              }
 
-            // Generate the keys
-            var keys = paillier.generateKeys({{numBits}});
+              // Génération des clés
+              var keys = paillier.generateKeys({{numBits}});
 
-            processData(file, keys, function(toSend) {
+              // Préparation des données transmises et chiffrement
+              processData(file, keys, function(toSend) {
                 var toSendJSON = JSON.stringify(toSend, null, '\t');
 
-                // Set up the AJAX request and send the data
-                $.ajax({
+                  // Requête AJAX et envoi vers le serveur des données chiffrées du patient
+                  $.ajax({
                     type : "POST",
                     url : "{{ url_for('server') }}",
                     data: toSendJSON,
                     contentType: 'application/json;charset=UTF-8',
-                    success: function() {
-                        statusDiv.innerHTML = 'The file was uploaded successfully !';
+                    success: function(answer) {
+                      statusDiv.innerHTML = 'Le fichier a bien été transmis !';
+                      console.log(answer.prediction);
+                      console.log(keys.sec.decrypt(answer.prediction));
+
                     },
                     error: function(){
-                        statusDiv.innerHTML = 'An error occurred while uploading the file. Try again...';
+                      statusDiv.innerHTML = 'Une erreur s\'est produite. Réessayez.';
                     }
+                  });
                 });
-            });
+            }
+            else {
+              statusDiv.innerHTML = 'Aucun fichier transmis... Réessayez.';
+            }
 
-        };
+          };
 
         // Déchiffrement 
         // var plaintext;
@@ -114,25 +124,25 @@
             // Le fichier transmis doit impérativement être composé de deux lignes : la première comprenant le nom des features, la seconde la data du patient associée
             // Ci-dessous, on prélève uniquement la data du patient puis on la chiffre, avant de la transmettre au serveur
             if (file) {
-                var reader = new FileReader();
-                reader.readAsText(file);
-                reader.onload = function(e) {
-                    var content = e.target.result;
-                    var docLines = content.split(/\r\n|\n/);
-                    var data = docLines[1].split(',');
-                    
-                    var encData = [];
+              var reader = new FileReader();
+              reader.readAsText(file);
+              reader.onload = function(e) {
+                var content = e.target.result;
+                var docLines = content.split(/\r\n|\n/);
+                var data = docLines[1].split(',');
 
-                    for (var i=1; i<data.length; i++) { 
-                        encData.push(keys.pub.encrypt(nbv(prepareElement(data[i])))['0']);
-                    }
+                var encData = [];
+
+                for (var i=1; i<data.length; i++) { 
+                  encData.push(keys.pub.encrypt(nbv(prepareElement(data[i])))['0']);
+                }
                     // On envoie maintenant encData au serveur pour qu'il effectue la prédiction !
                     // toSend = {'id':data[0], 'encData':encData, 'pubkey':keys.pub};
                     var toSend = {'id':data[0], 'encData':encData, 'pubkey':keys.pub};
                     callback(toSend);
-                };
-            }   
-        }
+                  };
+                }   
+              }
 
         // Cette fonction prépare l'élément data passé en argument, souvent décimal, à subir le chiffrement homomorphe
         function prepareElement(floatElement){
@@ -148,32 +158,32 @@
             var decimalPartSize = 0;
 
             if ((floatElement-Math.floor(floatElement)) > 0){
-                decimalPartSize = floatElement.toString().length - Math.floor(floatElement).toString().length - 1;
+              decimalPartSize = floatElement.toString().length - Math.floor(floatElement).toString().length - 1;
             }
 
             var zerosToAdd = 0;
             if (decimalPartSize < {{precisionMaxData}}){
-                zerosToAdd = {{precisionMaxData}} - decimalPartSize;
+              zerosToAdd = {{precisionMaxData}} - decimalPartSize;
             }
 
             newFloat = (Math.round(floatElement * Math.pow(10,{{precisionMaxData}})) / Math.pow(10,{{precisionMaxData}})).toString().replace('.','');
 
             for(var i=0; i<zerosToAdd; i++){
-                newFloat += '0';
+              newFloat += '0';
             }
 
             return parseInt(newFloat);
-        }
+          }
 
-});
+        });
 
-</script>
+      </script>
 
-<!-- Paillier JavaScript -->
-<script src="{{ url_for('static', filename='js/jsbn/jsbn.js') }}"></script>
-<script src="{{ url_for('static', filename='js/jsbn/jsbn2.js') }}"></script>
-<script src="{{ url_for('static', filename='js/jsbn/prng4.js') }}"></script>
-<script src="{{ url_for('static', filename='js/jsbn/rng.js') }}"></script>
-<script src="{{ url_for('static', filename='js/paillier.js') }}"></script>
+      <!-- Paillier JavaScript -->
+      <script src="{{ url_for('static', filename='js/jsbn/jsbn.js') }}"></script>
+      <script src="{{ url_for('static', filename='js/jsbn/jsbn2.js') }}"></script>
+      <script src="{{ url_for('static', filename='js/jsbn/prng4.js') }}"></script>
+      <script src="{{ url_for('static', filename='js/jsbn/rng.js') }}"></script>
+      <script src="{{ url_for('static', filename='js/paillier.js') }}"></script>
 
-{% endblock %}
+      {% endblock %}

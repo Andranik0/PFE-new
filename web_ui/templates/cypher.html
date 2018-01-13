@@ -1,5 +1,8 @@
 <html>
 <body>
+
+  <div id="results"></div>
+
   <!-- JQUERY -->
   <script src="{{ url_for('static', filename='js/jquery/jquery.min.js') }}"></script>
 
@@ -16,12 +19,13 @@
       
       encryptPrediction({{data.toEncrypt}}, function(encPrediction){
         var encPredictionJSON = JSON.stringify(encPrediction, null, '\t');
-        $.ajax({
-          type : "POST",
-          url : "{{ url_for('result') }}",
-          data: encPredictionJSON,
-          contentType: 'application/json;charset=UTF-8'
-        });
+        $('#results').append(encPredictionJSON);
+        // $.ajax({
+        //   type : "POST",
+        //   url : "{{ url_for('result') }}",
+        //   data: encPredictionJSON,
+        //   contentType: 'application/json;charset=UTF-8'
+        // });
       })
 
       function encryptPrediction(prediction, callback) {

@@ -32,21 +32,17 @@ def server():
 	# ml.predict(patientFile)
 
 	prediction = 1
-	# res = requests.post(build_url('cypher'), data = {'toEncrypt': prediction,'pubkey':content['pubkey']})
+	res = requests.get(build_url('cypher'), data = {'toEncrypt': prediction,'pubkey':content['pubkey']})
+	encPrediction = res.text
+	# encPrediction = 1
+	# res.json()
 
-	return jsonify({"status": "ok", "id":content['id']})
+	return jsonify({"status": "done", "id":content['id'], "prediction":encPrediction})
 
 
 @app.route('/cypher/')
 def cypher():
 	return render_template('cypher.html', data = request.data)
-
-@app.route('/result/', methods = ['GET', 'POST'])
-def result():
-	contentPred = request.get_json()
-	if(contentPred is not None):
-		print(contentPred)
-	return redirect(build_url('index'), contentPred=contentPred)
 
 def build_url(page):
     return app.config['DOMAIN'] + page +'/'
