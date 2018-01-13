@@ -22,7 +22,6 @@ Werkzeug==0.12.2
 wrapt==1.10.10
 jsonify==0.5
 jsonschema==2.6.0
-matplotlib==2.1.0
 numpy==1.13.3
 pandas==0.20.3
 request==0.0.22
