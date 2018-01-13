@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 # coding: utf-8
+import os
 
 # Taille des clés privées et publiques générées par Paillier
 NUMBITS_PAILLIER_KEYS = 16
@@ -8,4 +9,7 @@ NUMBITS_PAILLIER_KEYS = 16
 PRECISION_DATA = 4
 
 # Domaine du site
-DOMAIN = 'http://127.0.0.1:8080/'
+if os.environ.get('DOMAIN') is None:
+	DOMAIN = 'http://127.0.0.1:8080/'
+else:
+	DOMAIN = os.environ.get('DOMAIN')
