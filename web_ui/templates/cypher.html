@@ -1,8 +1,6 @@
 <html>
 <body>
 
-  <div id="results">1</div>
-
   <!-- JQUERY -->
   <script src="{{ url_for('static', filename='js/jquery/jquery.min.js') }}"></script>
 
@@ -19,7 +17,8 @@
       
       encryptPrediction({{data.toEncrypt}}, function(encPrediction){
         var encPredictionJSON = JSON.stringify(encPrediction, null, '\t');
-        $('#results').text(2);
+        $('body').append("<div id='results'></div>");
+        $^('#results').text(encPredictionJSON);
       });
 
       function encryptPrediction(prediction, callback) {
