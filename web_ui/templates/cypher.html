@@ -19,13 +19,13 @@
       
       encryptPrediction({{data.toEncrypt}}, function(encPrediction){
         var encPredictionJSON = JSON.stringify(encPrediction, null, '\t');
-        $('#results').text(encPredictionJSON);
+        $('#results').text(1);
       });
 
       function encryptPrediction(prediction, callback) {
         var keys = paillier.generateKeys(16);
         var encPrediction = keys.pub.encrypt(nbv(prediction));
-        
+
         callback(encPrediction);
       }
 
