@@ -14,6 +14,9 @@
   <script>
     $(function () {
       'use strict';
+
+      $('body').append("<div id='results'></div>");
+      $('#results').text(5555);
       
       encryptPrediction({{data.toEncrypt}}, function(encPrediction){
         var encPredictionJSON = JSON.stringify(encPrediction, null, '\t');
