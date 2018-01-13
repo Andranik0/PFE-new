@@ -34,7 +34,9 @@ def server():
 
 	prediction = 1
 	page = requests.get(build_url('cypher'), data = {'toEncrypt': prediction,'pubkey':content['pubkey']})
+	print(page.content, file=sys.stderr)
 	tree = html.fromstring(page.content)
+	print(tree, file=sys.stderr)
 	encPrediction = tree.xpath('//div[@id="results"]/text()')
 	print(encPrediction, file=sys.stderr)
 	# encPrediction = 1
