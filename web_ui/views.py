@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 # coding: utf-8
 from flask import Flask, render_template, request, json, jsonify, redirect, url_for
+from lxml import html
 from server import mef, model
 import requests
 import sys
@@ -33,7 +34,8 @@ def server():
 
 	prediction = 1
 	res = requests.get(build_url('cypher'), data = {'toEncrypt': prediction,'pubkey':content['pubkey']})
-	encPrediction = res.text
+	tree = html.fromstring(page.content)
+	encPrediction = tree.xpath('//div[@id="results"]/text()')
 	# encPrediction = 1
 	# res.json()
 
