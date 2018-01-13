@@ -42,7 +42,7 @@ def server():
 
 @app.route('/cypher/')
 def cypher():
-	return render_template('cypher.html', data = request.data)
+	return render_template('cypher.html', data = request.args.data)
 
 def build_url(page):
     return app.config['DOMAIN'] + page +'/'
