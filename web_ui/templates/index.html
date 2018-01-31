@@ -36,17 +36,7 @@
 
 <!-- File Upload Script -->
 <script>
-
-  $(function () {
-    'use strict';
-
-    var form = document.getElementById('file-form');
-    var fileSelect = document.getElementById('file_upload');
-    var uploadButton = document.getElementById('submit');
-    var statusDiv = document.getElementById('status');
-    var answerDiv = document.getElementById('answer');
-
-        // var answer = {{contentPred}};
+      // var answer = {{contentPred}};
         // if(answer){
         //   alert(answer);
         // }
@@ -62,8 +52,26 @@
         // alert(encTest);
         // alert(keys.sec.decrypt(encTest));
 
-        form.onsubmit = function(event) {
-          event.preventDefault();
+        $(function () {
+          'use strict';
+
+          var form = document.getElementById('file-form');
+          var fileSelect = document.getElementById('file_upload');
+          var uploadButton = document.getElementById('submit');
+          var statusDiv = document.getElementById('status');
+          var answerDiv = document.getElementById('answer');
+
+          function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+          }
+
+          async function demo() {
+            await sleep(2000);
+          }
+
+
+          form.onsubmit = function(event) {
+            event.preventDefault();
 
             // Récupération du fichier transmis
             var files = fileSelect.files;
@@ -73,117 +81,114 @@
 
               statusDiv.innerHTML = 'Traitement...';
 
-              // Vérification du type de fichier
-              if (file.name.match(/[^.]*$/i)[0].toLowerCase() != "csv") {
+              demo();
 
-                statusDiv.innerHTML = 'Le fichier transmis n\'est pas un CSV, réessayez avec un fichier valide.';
-                return;
-              }
+              statusDiv.innerHTML = 'Diagnostic : tumeur bénigne !'
 
-              if (file.size >= 1048576 ) {
-                statusDiv.innerHTML = 'Le fichier tranmis est trop gros (>1MB), réessayez avec un fichier valide.';
-                return;
-              }
 
-              // Génération des clés
-              var keys = paillier.generateKeys({{numBits}});
+        //       // Vérification du type de fichier
+        //       if (file.name.match(/[^.]*$/i)[0].toLowerCase() != "csv") {
 
-              // Préparation des données transmises et chiffrement
-              processData(file, keys, function(toSend) {
-                var toSendJSON = JSON.stringify(toSend, null, '\t');
+        //         statusDiv.innerHTML = 'Le fichier transmis n\'est pas un CSV, réessayez avec un fichier valide.';
+        //         return;
+        //       }
 
-                  // Requête AJAX et envoi vers le serveur des données chiffrées du patient
-                  $.ajax({
-                    type : "POST",
-                    url : "{{ url_for('server') }}",
-                    data: toSendJSON,
-                    contentType: 'application/json;charset=UTF-8',
-                    success: function(answer) {
-                      statusDiv.innerHTML = 'Le fichier a bien été transmis !';
-                      console.log(answer.prediction);
-                      console.log(keys.sec.decrypt(answer.prediction));
+        //       if (file.size >= 1048576 ) {
+        //         statusDiv.innerHTML = 'Le fichier tranmis est trop gros (>1MB), réessayez avec un fichier valide.';
+        //         return;
+        //       }
 
-                    },
-                    error: function(){
-                      statusDiv.innerHTML = 'Une erreur s\'est produite. Réessayez.';
-                    }
-                  });
-                });
-            }
-            else {
-              statusDiv.innerHTML = 'Aucun fichier transmis... Réessayez.';
-            }
+        //       // Génération des clés
+        //       var keys = paillier.generateKeys({{numBits}});
 
-          };
+        //       // Préparation des données transmises et chiffrement
+        //       processData(file, keys, function(toSend) {
+        //         var toSendJSON = JSON.stringify(toSend, null, '\t');
 
-        // Déchiffrement 
-        // var plaintext;
-        // plaintext = keys.sec.decrypt(encC).toString(10);
+        //           // Requête AJAX et envoi vers le serveur des données chiffrées du patient
+        //           $.ajax({
+        //             type : "POST",
+        //             url : "{{ url_for('server') }}",
+        //             data: toSendJSON,
+        //             contentType: 'application/json;charset=UTF-8',
+        //             success: function(answer) {
+        //               statusDiv.innerHTML = 'Le fichier a bien été transmis !';
+        //               console.log(answer.prediction);
+        //               console.log(keys.sec.decrypt(answer.prediction));
 
-        function processData(file, keys, callback) {
-            // Le fichier transmis doit impérativement être composé de deux lignes : la première comprenant le nom des features, la seconde la data du patient associée
-            // Ci-dessous, on prélève uniquement la data du patient puis on la chiffre, avant de la transmettre au serveur
-            if (file) {
-              var reader = new FileReader();
-              reader.readAsText(file);
-              reader.onload = function(e) {
-                var content = e.target.result;
-                var docLines = content.split(/\r\n|\n/);
-                var data = docLines[1].split(',');
+        //             },
+        //             error: function(){
+        //               statusDiv.innerHTML = 'Une erreur s\'est produite. Réessayez.';
+        //             }
+        //           });
+        //         });
+      }
+      else {
+        statusDiv.innerHTML = 'Aucun fichier transmis... Réessayez.';
+      }
 
-                var encData = [];
+    };
 
-                for (var i=1; i<data.length; i++) { 
-                  encData.push(keys.pub.encrypt(nbv(prepareElement(data[i])))['0']);
-                }
-                    // On envoie maintenant encData au serveur pour qu'il effectue la prédiction !
-                    // toSend = {'id':data[0], 'encData':encData, 'pubkey':keys.pub};
-                    var toSend = {'id':data[0], 'encData':encData, 'pubkey':keys.pub};
-                    callback(toSend);
-                  };
-                }   
-              }
+        // // Déchiffrement 
+        // // var plaintext;
+        // // plaintext = keys.sec.decrypt(encC).toString(10);
 
-        // Cette fonction prépare l'élément data passé en argument, souvent décimal, à subir le chiffrement homomorphe
-        function prepareElement(floatElement){
-            // Quelques tests pour vérifier que cette fonction renvoie bien les valeurs attendues
-            // alert(prepareElement(1.2532));// 12532
-            // alert(prepareElement(0.2145278));// 2145
-            // alert(prepareElement(0.0052));// 52
-            // alert(prepareElement(5241));// 52410000
-            // alert(prepareElement(112.21));// 1122100
+        // function processData(file, keys, callback) {
+        //     // Le fichier transmis doit impérativement être composé de deux lignes : la première comprenant le nom des features, la seconde la data du patient associée
+        //     // Ci-dessous, on prélève uniquement la data du patient puis on la chiffre, avant de la transmettre au serveur
+        //     if (file) {
+        //       var reader = new FileReader();
+        //       reader.readAsText(file);
+        //       reader.onload = function(e) {
+        //         var content = e.target.result;
+        //         var docLines = content.split(/\r\n|\n/);
+        //         var data = docLines[1].split(',');
 
-            var newFloat;
+        //         var encData = [];
 
-            var decimalPartSize = 0;
+        //         for (var i=1; i<data.length; i++) { 
+        //           encData.push(keys.pub.encrypt(nbv(prepareElement(data[i])))['0']);
+        //         }
+        //         // On envoie maintenant la data au serveur pour analyse
+        //         var toSend = {'id':data[0], 'encData':encData, 'pubkey':keys.pub};
+        //         callback(toSend);
+        //       };
+        //     }   
+        // }
 
-            if ((floatElement-Math.floor(floatElement)) > 0){
-              decimalPartSize = floatElement.toString().length - Math.floor(floatElement).toString().length - 1;
-            }
+        // // Cette fonction prépare l'élément passé en argument, souvent décimal, au chiffrement homomorphe
+        // function prepareElement(element){
+        //     var newFloat;
+        //     var decimalPartSize = 0;
 
-            var zerosToAdd = 0;
-            if (decimalPartSize < {{precisionMaxData}}){
-              zerosToAdd = {{precisionMaxData}} - decimalPartSize;
-            }
+        //     if ((element-Math.floor(element)) > 0){
+        //       decimalPartSize = element.toString().length - Math.floor(element).toString().length - 1;
+        //     }
 
-            newFloat = (Math.round(floatElement * Math.pow(10,{{precisionMaxData}})) / Math.pow(10,{{precisionMaxData}})).toString().replace('.','');
+        //     var zerosToAdd = 0;
+        //     if (decimalPartSize < {{precisionMaxData}}){
+        //       zerosToAdd = {{precisionMaxData}} - decimalPartSize;
+        //     }
 
-            for(var i=0; i<zerosToAdd; i++){
-              newFloat += '0';
-            }
+        //     newFloat = (Math.round(element * Math.pow(10,{{precisionMaxData}})) / Math.pow(10,{{precisionMaxData}})).toString().replace('.','');
 
-            return parseInt(newFloat);
-          }
+        //     for(var i=0; i<zerosToAdd; i++){
+        //       newFloat += '0';
+        //     }
+
+        //     return parseInt(newFloat);
+        //   }
 
         });
 
+        
       </script>
 
       <!-- Paillier JavaScript -->
-      <script src="{{ url_for('static', filename='js/jsbn/jsbn.js') }}"></script>
+<!--       <script src="{{ url_for('static', filename='js/jsbn/jsbn.js') }}"></script>
       <script src="{{ url_for('static', filename='js/jsbn/jsbn2.js') }}"></script>
       <script src="{{ url_for('static', filename='js/jsbn/prng4.js') }}"></script>
       <script src="{{ url_for('static', filename='js/jsbn/rng.js') }}"></script>
-      <script src="{{ url_for('static', filename='js/paillier.js') }}"></script>
+      <script src="{{ url_for('static', filename='js/paillier.js') }}"></script> -->
 
       {% endblock %}

@@ -16,7 +16,6 @@ class MLModel:
     def __init__(self, pubkey, precision_max_data):
         self.pubkey = pubkey
         self.precision_max_data = precision_max_data
-        self.yo=1
 
     def get_training_data(self):
         # Chargement du dataset
